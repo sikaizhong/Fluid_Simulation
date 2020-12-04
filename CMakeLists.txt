@@ -15,13 +15,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
-# Project modules
-set(BUILD_GTEST ON CACHE BOOL "" FORCE) #If FORCE is used here, we can not check/uncheck this option in cmake gui;
-#set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-#add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-if(BUILD_GTEST)
-add_subdirectory(external/googletest)
-endif()
+
+
+
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/data)
+INCLUDE_DIRECTORIES (${PROJECT_SOURCE_DIR}/shader)
 INCLUDE_DIRECTORIES (src )
 INCLUDE_DIRECTORIES (src/core)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/external/spdlog/include)
@@ -43,13 +41,51 @@ IF (FS_FLOAT_AS_DOUBLE)
   ADD_DEFINITIONS ( -D FS_FLOAT_AS_DOUBLE )
 ENDIF()
 
+# Project modules
+set(BUILD_GTEST ON CACHE BOOL "" FORCE) #If FORCE is used here, we can not check/uncheck this option in cmake gui;
+#set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+#add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+if(BUILD_GTEST)
+add_subdirectory(external/googletest)
+endif()
+
+#OpenGL renderer
+OPTION(BUILD_RENDERER "Build OpenglRender" ON)
+if(BUILD_RENDERER)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/renderer)
+endif()
+OPTION(BUILD_GLFW "Build GLFW" ON)
+if(BUILD_GLFW)
+add_subdirectory(${PROJECT_SOURCE_DIR}/external/glfw)
+endif()
+add_subdirectory(${PROJECT_SOURCE_DIR}/external/glm)
+
+
+
+#In spdlog, there is an option called SPDLOG_BUILD_ALL
+#If I want to activitate it from the default value
+#Put this line 
+#This line must be put before the add_subdirectory command;
+#SET(SPDLOG_BUILD_ALL ON CACHE BOOL "Use log" FORCE )
+#If we do not need to build the target and consider it as a header-only file
+# we can use EXCLUDE_FROM_ALL.
+add_subdirectory(${PROJECT_SOURCE_DIR}/external/spdlog EXCLUDE_FROM_ALL)
+if(BUILD_GTEST)
+add_subdirectory(src/test)
+endif()
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/logwrapper)
+
+
+
+
+
 SET ( FS_CORE_HEADERS
 src/core/core.h
-src/loglayer.h
+#src/loglayer.h
 )
 SET ( FS_CORE_SOURCE
 src/core/core.cpp
-src/loglayer.cpp
+#src/loglayer.cpp
 
 )
 
@@ -66,16 +102,22 @@ add_library(Fluid_Simulation_Lib ${FS_CORE_HEADERS} ${FS_CORE_SOURCE})
 add_executable(Fluid_Simulation  main.cpp)
 target_link_libraries(Fluid_Simulation
 Fluid_Simulation_Lib
+loglayer
 )
 
-#In spdlog, there is an option called SPDLOG_BUILD_ALL
-#If I want to activitate it from the default value
-#Put this line 
-#This line must be put before the add_subdirectory command;
-#SET(SPDLOG_BUILD_ALL ON CACHE BOOL "Use log" FORCE )
-#If we do not need to build the target and consider it as a header-only file
-# we can use EXCLUDE_FROM_ALL.
-add_subdirectory(${PROJECT_SOURCE_DIR}/external/spdlog EXCLUDE_FROM_ALL)
-if(BUILD_GTEST)
-add_subdirectory(src/test)
-endif()
+#install (TARGETS Fluid_Simulation_Lib DESTINATION bin)
+#install (TARGETS Fluid_Simulation_Lib DESTINATION lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
